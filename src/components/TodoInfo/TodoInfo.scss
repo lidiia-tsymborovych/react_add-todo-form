@@ -1,0 +1,27 @@
+.TodoInfo {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  gap: 10px;
+
+  padding: 12px 16px;
+  border: 1px solid #ddd;
+  border-left: 4px solid #ccc;
+  border-radius: 6px;
+
+  background-color: #f5f5f5;
+
+  transition: background-color 0.2s ease;
+
+  &--completed {
+    border-left-color: #70d470;
+    background-color: #e3f8e3;
+  }
+
+  &__title {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 600;
+    color: #333;
+  }
+}

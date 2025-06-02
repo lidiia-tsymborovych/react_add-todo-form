@@ -1,0 +1,34 @@
+.TodoList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  width: 100%;
+  border-radius: 8px;
+
+  font-family: Arial, sans-serif;
+
+  background-color: #fefefe;
+
+  &__item {
+    display: flex;
+    gap: 4px;
+    justify-content: space-between;
+  }
+}
+
+.edit-btn {
+  width: 68px;
+  border-radius: 8px;
+  background-color: #a1c4fd;
+}
+
+.delete-btn {
+  width: 68px;
+  border-radius: 8px;
+  background-color: #ffbde3;
+
+  &:hover {
+    background-color: #ff9dd6;
+  }
+}

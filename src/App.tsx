@@ -1,61 +1,86 @@
 import './App.scss';
+import { TodoForm } from './components/TodoForm';
+import { TodoList } from './components/TodoList';
 
-// import usersFromServer from './api/users';
-// import todosFromServer from './api/todos';
+import usersFromServer from './api/users';
+import { useState } from 'react';
+import { ListOfTodos } from './utils/ListOfTodos';
+import { getNewId } from './utils/getNewId';
+import { getUserById } from './utils/getUserById';
 
-export const App = () => {
+export const App: React.FC = () => {
+  const [newTitle, setNewTitle] = useState('');
+  const [selectedUserId, setSelectedUserId] = useState(0);
+  const [titleHasError, setTitleHasError] = useState(false);
+  const [userHasError, setUserHasError] = useState(false);
+  const [updatedTodos, setUpdatedTodos] = useState(ListOfTodos);
+
+  const resetAfterSubmit = () => {
+    setNewTitle('');
+    setSelectedUserId(0);
+  };
+
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (!newTitle) {
+      setTitleHasError(true);
+
+      return;
+    }
+
+    if (!selectedUserId) {
+      setUserHasError(true);
+
+      return;
+    }
+
+    const newTask = {
+      id: getNewId(updatedTodos),
+      completed: false,
+      title: newTitle,
+      userId: selectedUserId,
+      user: getUserById(selectedUserId),
+    };
+
+    setUpdatedTodos(curr => [...curr, newTask]);
+    resetAfterSubmit();
+  };
+
+  const handleDeleteButton = (deletingTaskId: number) => {
+    setUpdatedTodos(curr => curr.filter(task => task.id !== deletingTaskId));
+  };
+
+  const handleToggleComplete = (taskId: number) => {
+    setUpdatedTodos(curr =>
+      curr.map(todo =>
+        taskId === todo.id ? { ...todo, completed: !todo.completed } : todo,
+      ),
+    );
+  };
+
   return (
     <div className="App">
       <h1>Add todo form</h1>
 
-      <form action="/api/todos" method="POST">
-        <div className="field">
-          <input type="text" data-cy="titleInput" />
-          <span className="error">Please enter a title</span>
-        </div>
+      <TodoForm
+        users={usersFromServer}
+        newTitle={newTitle}
+        selectedUserId={selectedUserId}
+        setNewTitle={setNewTitle}
+        setSelectedUserId={setSelectedUserId}
+        onSubmit={handleSubmit}
+        titleError={titleHasError}
+        userError={userHasError}
+        setTitleError={setTitleHasError}
+        setUserError={setUserHasError}
+      />
 
-        <div className="field">
-          <select data-cy="userSelect">
-            <option value="0" disabled>
-              Choose a user
-            </option>
-          </select>
-
-          <span className="error">Please choose a user</span>
-        </div>
-
-        <button type="submit" data-cy="submitButton">
-          Add
-        </button>
-      </form>
-
-      <section className="TodoList">
-        <article data-id="1" className="TodoInfo TodoInfo--completed">
-          <h2 className="TodoInfo__title">delectus aut autem</h2>
-
-          <a className="UserInfo" href="mailto:Sincere@april.biz">
-            Leanne Graham
-          </a>
-        </article>
-
-        <article data-id="15" className="TodoInfo TodoInfo--completed">
-          <h2 className="TodoInfo__title">delectus aut autem</h2>
-
-          <a className="UserInfo" href="mailto:Sincere@april.biz">
-            Leanne Graham
-          </a>
-        </article>
-
-        <article data-id="2" className="TodoInfo">
-          <h2 className="TodoInfo__title">
-            quis ut nam facilis et officia qui
-          </h2>
-
-          <a className="UserInfo" href="mailto:Julianne.OConner@kory.org">
-            Patricia Lebsack
-          </a>
-        </article>
-      </section>
+      <TodoList
+        todos={updatedTodos}
+        onDelete={handleDeleteButton}
+        onToggleComplete={handleToggleComplete}
+      />
     </div>
   );
 };
