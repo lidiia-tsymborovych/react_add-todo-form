@@ -2,50 +2,56 @@ import './App.scss';
 import { TodoForm } from './components/TodoForm';
 import { TodoList } from './components/TodoList';
 
-import usersFromServer from './api/users';
 import { useState } from 'react';
 import { ListOfTodos } from './utils/ListOfTodos';
 import { getNewId } from './utils/getNewId';
 import { getUserById } from './utils/getUserById';
 
 export const App: React.FC = () => {
-  const [newTitle, setNewTitle] = useState('');
-  const [selectedUserId, setSelectedUserId] = useState(0);
-  const [titleHasError, setTitleHasError] = useState(false);
-  const [userHasError, setUserHasError] = useState(false);
   const [updatedTodos, setUpdatedTodos] = useState(ListOfTodos);
 
-  const resetAfterSubmit = () => {
+  const resetAfterSubmit = (
+    setNewTitle: (value: string) => void,
+    setSelectedUserId: (value: number) => void,
+  ) => {
     setNewTitle('');
     setSelectedUserId(0);
   };
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  // const handleSubmit = (
+  //   event: React.FormEvent<HTMLFormElement>,
+  //   newTitle: string,
+  //   selectedUserId: number,
+  //   setNewTitle: (value: string) => void,
+  //   setSelectedUserId: (value: number) => void,
+  //   setTitleError: (value: boolean) => void,
+  //   setUserHasError: (value: boolean) => void,
+  // ) => {
+  //   event.preventDefault();
 
-    if (!newTitle) {
-      setTitleHasError(true);
+  //   if (!newTitle) {
+  //     setTitleError(true);
 
-      return;
-    }
+  //     return;
+  //   }
 
-    if (!selectedUserId) {
-      setUserHasError(true);
+  //   if (!selectedUserId) {
+  //     setUserHasError(true);
 
-      return;
-    }
+  //     return;
+  //   }
 
-    const newTask = {
-      id: getNewId(updatedTodos),
-      completed: false,
-      title: newTitle,
-      userId: selectedUserId,
-      user: getUserById(selectedUserId),
-    };
+  //   const newTask = {
+  //     id: getNewId(updatedTodos),
+  //     completed: false,
+  //     title: newTitle,
+  //     userId: selectedUserId,
+  //     user: getUserById(selectedUserId),
+  //   };
 
-    setUpdatedTodos(curr => [...curr, newTask]);
-    resetAfterSubmit();
-  };
+  //   setUpdatedTodos(curr => [...curr, newTask]);
+  //   resetAfterSubmit(setNewTitle, setSelectedUserId);
+  // };
 
   const handleDeleteButton = (deletingTaskId: number) => {
     setUpdatedTodos(curr => curr.filter(task => task.id !== deletingTaskId));
@@ -59,27 +65,107 @@ export const App: React.FC = () => {
     );
   };
 
+  // const handleUpdate = (
+  //   event: React.FormEvent<HTMLFormElement>,
+  //   updatedTitle: string,
+  //   updatedUserId: number,
+  //   setNewTitle: (value: string) => void,
+  //   setSelectedUserId: (value: number) => void,
+  //   setTitleError: (value: boolean) => void,
+  //   setUserHasError: (value: boolean) => void,
+  //   taskId: number,
+  // ) => {
+  //   event.preventDefault();
+
+  //   if (!updatedTitle) {
+  //     setTitleError(true);
+
+  //     return;
+  //   }
+
+  //   if (!updatedUserId) {
+  //     setUserHasError(true);
+
+  //     return;
+  //   }
+
+  //   const newTask = {
+  //     id: getNewId(updatedTodos),
+  //     completed: false,
+  //     title: updatedTitle,
+  //     userId: updatedUserId,
+  //     user: getUserById(updatedUserId),
+  //   };
+
+  //   setUpdatedTodos(curr =>
+  //     curr.map(todo => (todo.id === taskId ? newTask : todo)),
+  //   );
+
+  //   resetAfterSubmit(setNewTitle, setSelectedUserId);
+  // };
+
+  const handleSave = (
+    event: React.FormEvent<HTMLFormElement>,
+    title: string,
+    userId: number,
+    setNewTitle: (value: string) => void,
+    setSelectedUserId: (value: number) => void,
+    setTitleError: (value: boolean) => void,
+    setUserHasError: (value: boolean) => void,
+    taskId?: number,
+  ) => {
+    event.preventDefault();
+
+    if (!title) {
+      setTitleError(true);
+
+      return;
+    }
+
+    if (!userId) {
+      setUserHasError(true);
+
+      return;
+    }
+
+    if (taskId != null) {
+      const updatedTask = {
+        id: getNewId(updatedTodos),
+        completed: false,
+        title,
+        userId,
+        user: getUserById(userId),
+      };
+
+      setUpdatedTodos(curr =>
+        curr.map(todo => (todo.id === taskId ? updatedTask : todo)),
+      );
+    } else {
+      const newTask = {
+        id: getNewId(updatedTodos),
+        completed: false,
+        title,
+        userId,
+        user: getUserById(userId),
+      };
+
+      setUpdatedTodos(curr => [...curr, newTask]);
+    }
+
+    resetAfterSubmit(setNewTitle, setSelectedUserId);
+  };
+
   return (
     <div className="App">
       <h1>Add todo form</h1>
 
-      <TodoForm
-        users={usersFromServer}
-        newTitle={newTitle}
-        selectedUserId={selectedUserId}
-        setNewTitle={setNewTitle}
-        setSelectedUserId={setSelectedUserId}
-        onSubmit={handleSubmit}
-        titleError={titleHasError}
-        userError={userHasError}
-        setTitleError={setTitleHasError}
-        setUserError={setUserHasError}
-      />
+      <TodoForm onSubmit={handleSave} />
 
       <TodoList
         todos={updatedTodos}
         onDelete={handleDeleteButton}
         onToggleComplete={handleToggleComplete}
+        onSubmit={handleSave}
       />
     </div>
   );

@@ -1,4 +1,6 @@
+import { useState } from 'react';
 import { Task } from '../../entities/Task';
+import { TodoForm } from '../TodoForm';
 import { TodoInfo } from '../TodoInfo';
 import './TodoList.scss';
 
@@ -6,24 +8,43 @@ type TodoListProps = {
   todos: Task[];
   onDelete: (value: number) => void;
   onToggleComplete: (value: number) => void;
+  onSubmit: (
+    event: React.FormEvent<HTMLFormElement>,
+    title: string,
+    userId: number,
+    setNewTitle: (value: string) => void,
+    setSelectedUserId: (value: number) => void,
+    setTitleError: (value: boolean) => void,
+    setUserHasError: (value: boolean) => void,
+    taskId?: number,
+  ) => void;
 };
 
 export const TodoList: React.FC<TodoListProps> = ({
   todos,
   onDelete,
   onToggleComplete,
+  onSubmit,
 }) => {
-  // const [editingId, setEditingId] = useState<number | null>(null);
+  const [editingId, setEditingId] = useState<number | null>(null);
 
   return (
     <section className="TodoList">
       {todos.map(todo => (
         <div className="TodoList__item" key={todo.id}>
           <TodoInfo task={todo} onToggle={onToggleComplete} />
+          {editingId === todo.id ? (
+            <TodoForm
+              key={todo.id}
+              onSubmit={onSubmit}
+              onCancel={() => setEditingId(null)}
+              todo={todo}
+            />
+          ) : null}
           <button
             className="edit-btn"
             type="button"
-            // onClick={() => setEditingId(todo.id)}
+            onClick={() => setEditingId(todo.id)}
           >
             ✏️ Edit
           </button>
