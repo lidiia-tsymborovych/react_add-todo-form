@@ -1,61 +1,81 @@
+import { Component } from 'react';
 import './App.scss';
+import { TodoList } from './components/TodoList';
+import { todoList, TodoWithUser } from './entities/TodoWithUser';
+import { TodoForm } from './components/TodoInfo/TodoForm/TodoForm';
+import { getNewTodoId } from './utils/getNewTodoId';
+import { getUser } from './utils/getUser';
 
-// import usersFromServer from './api/users';
-// import todosFromServer from './api/todos';
-
-export const App = () => {
-  return (
-    <div className="App">
-      <h1>Add todo form</h1>
-
-      <form action="/api/todos" method="POST">
-        <div className="field">
-          <input type="text" data-cy="titleInput" />
-          <span className="error">Please enter a title</span>
-        </div>
-
-        <div className="field">
-          <select data-cy="userSelect">
-            <option value="0" disabled>
-              Choose a user
-            </option>
-          </select>
-
-          <span className="error">Please choose a user</span>
-        </div>
-
-        <button type="submit" data-cy="submitButton">
-          Add
-        </button>
-      </form>
-
-      <section className="TodoList">
-        <article data-id="1" className="TodoInfo TodoInfo--completed">
-          <h2 className="TodoInfo__title">delectus aut autem</h2>
-
-          <a className="UserInfo" href="mailto:Sincere@april.biz">
-            Leanne Graham
-          </a>
-        </article>
-
-        <article data-id="15" className="TodoInfo TodoInfo--completed">
-          <h2 className="TodoInfo__title">delectus aut autem</h2>
-
-          <a className="UserInfo" href="mailto:Sincere@april.biz">
-            Leanne Graham
-          </a>
-        </article>
-
-        <article data-id="2" className="TodoInfo">
-          <h2 className="TodoInfo__title">
-            quis ut nam facilis et officia qui
-          </h2>
-
-          <a className="UserInfo" href="mailto:Julianne.OConner@kory.org">
-            Patricia Lebsack
-          </a>
-        </article>
-      </section>
-    </div>
-  );
+type State = {
+  list: TodoWithUser[];
+  selectedUserId: number;
+  newTitle: string;
+  titleError: boolean;
+  userError: boolean;
 };
+
+export class App extends Component<{}, State> {
+  state: State = {
+    list: todoList,
+    selectedUserId: 0,
+    newTitle: '',
+    titleError: false,
+    userError: false,
+  };
+
+  handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    this.setState({ newTitle: event.target.value });
+  };
+
+  handleSelect = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const id = +event.target.value;
+
+    this.setState({ selectedUserId: id });
+  };
+
+  handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (!this.state.newTitle) {
+      this.setState({ titleError: true });
+    }
+
+    if (!this.state.selectedUserId) {
+      this.setState({ userError: true });
+    }
+
+    if (!this.state.newTitle || !this.state.selectedUserId) {
+      return;
+    }
+
+    const newTodo = {
+      id: getNewTodoId(this.state.list),
+      title: this.state.newTitle,
+      completed: false,
+      userId: this.state.selectedUserId,
+      user: getUser(this.state.selectedUserId),
+    };
+
+    this.setState({ list: [...this.state.list, newTodo] });
+  };
+
+  render() {
+    return (
+      <div className="App">
+        <h1>Add todo form</h1>
+
+        <TodoForm
+          title={this.state.newTitle}
+          selectedId={this.state.selectedUserId}
+          onChange={this.handleInputChange}
+          onSelect={this.handleSelect}
+          onSubmit={this.handleSubmit}
+          titleError={this.state.titleError}
+          userError={this.state.userError}
+        />
+
+        <TodoList list={this.state.list} />
+      </div>
+    );
+  }
+}
